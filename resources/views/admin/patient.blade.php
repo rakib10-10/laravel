@@ -126,8 +126,7 @@
             <tr>
                 <td>
                     <div class="patient-info">
-                        <img src="{{asset('images/donald_trump.webp')}}" alt="">
-                        Donald Trump
+                        
                     </div>
                 </td>
                 <td>4 Shirley Ave. West Chicago, IL 60185</td>
@@ -139,8 +138,7 @@
             <tr>
                 <td>
                     <div class="patient-info">
-                        <img src="{{asset('images/sheikh_hasina.webp')}}" alt="">
-                        Sheikh Hasina
+                        
                     </div>
                 </td>
                 <td>123 6th St. Melbourne, FL 32904</td>
