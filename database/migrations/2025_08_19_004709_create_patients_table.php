@@ -12,15 +12,17 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('patients', function (Blueprint $table) {
-             $table->id();
-            $table->foreignId('user_id')->unique()->constrained()->cascadeOnDelete();
-            $table->date('date_of_birth')->nullable();
-            $table->enum('gender',['Male','Female','Other'])->nullable();
-            $table->enum('blood_type',['A+','A-','B+','B-','AB+','AB-','O+','O-'])->nullable();
-            $table->text('address')->nullable();
-            $table->string('emergency_contact')->nullable();
-            $table->timestamps();
-        });
+        $table->id();
+        $table->unsignedBigInteger('user_id');
+        $table->string('name'); 
+        $table->date('date_of_birth');
+        $table->enum('gender', ['Male', 'Female', 'Other']);
+        $table->string('blood_type', 3);
+        $table->string('address');
+        $table->string('emergency_contact');
+        $table->timestamps();
+});
+
     }
 
     /**
