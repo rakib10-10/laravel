@@ -2,6 +2,8 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\ReportController;
+use App\Http\Controllers\PatientController;
 
 
 // Route::view('/dashboard','dashboard')
@@ -36,10 +38,17 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::view('/medicines', 'admin.medicines')->name('medicines');
     Route::view('/reports', 'admin.reports')->name('reports');
     Route::view('/appointment', 'admin.appointment')->name('appointment');
+    Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+    Route::post('/reports', [ReportController::class, 'store'])->name('reports.store');
+    Route::get('/patients/search', [PatientController::class, 'search'])->name('patients.search');
 });
 Route::get('/doctor/details', function () {
     return view('admin.doctor-details');
 });
+
+
+
+
 
 
 
