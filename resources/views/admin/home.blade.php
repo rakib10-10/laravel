@@ -103,7 +103,7 @@
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link {{ Request::routeIs('admin.reports') ? 'active' : '' }}" href="{{ route('admin.reports') }}">
+            <a class="nav-link {{ Request::routeIs('admin.reports.index') ? 'active' : '' }}" href="{{ route('admin.reports.index') }}">
               <i class="fa-solid fa-chart-line"></i> Reports
             </a>
           </li>
