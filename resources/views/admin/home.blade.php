@@ -98,7 +98,7 @@
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link {{ Request::routeIs('admin.medicines') ? 'active' : '' }}" href="{{ route('admin.medicines') }}">
+            <a class="nav-link {{ Request::routeIs('admin.medicines.index') ? 'active' : '' }}" href="{{ route('admin.medicines.index') }}">
               <i class="fa-solid fa-pills"></i> Medicines
             </a>
           </li>

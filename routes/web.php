@@ -46,6 +46,8 @@ Route::get('/doctor/details', function () {
     return view('admin.doctor-details');
 });
 
+Route::get('/admin/medicines', [MedicineController::class, 'index'])->name('admin.medicines.index');
+
 
 
 
