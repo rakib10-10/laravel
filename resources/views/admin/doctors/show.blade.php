@@ -17,7 +17,9 @@
                 <p><strong>Date of Birth:</strong> {{ $doctor->date_of_birth }}</p>
                 <p><strong>Date of Joining:</strong> {{ $doctor->date_of_joining }}</p>
                 <p><strong>Blood Group:</strong> {{ $doctor->blood_group }}</p>
-                <p><strong>Specialist:</strong> {{ $doctor->specialist }}</p>
+                @if($doctor->profile_image)
+                    <p><strong>Profile Image:</strong></p>
+                    <img src="{{ asset('images/' . $doctor->profile_image) }}" alt="Profile Image" style="max-width: 150px;">
                 <p><strong>Specialization:</strong> {{ $doctor->specialization }}</p>
                 <p><strong>Designation:</strong> {{ $doctor->designation }}</p>
                 <p><strong>Department:</strong> {{ $doctor->department }}</p>

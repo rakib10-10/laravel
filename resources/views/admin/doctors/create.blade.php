@@ -31,6 +31,7 @@
                 <label for="profile_image">Profile Image</label>
                 <input type="file" class="form-control" id="profile_image" name="profile_image">
             </div>
+            
 
             <div class="form-group mb-3">
                 <label for="date_of_birth">Date of Birth</label>
@@ -64,18 +65,7 @@
                     value="{{ old('license_number') }}">
             </div>
 
-            <div class="form-group mb-3">
-                <label for="specialist">Specialist</label>
-                <select class="form-control" id="specialist" name="specialist" required>
-                    <option value="" disabled selected>Select Specialist Area</option>
-                    <option value="Cardiomyopathy" {{ old('specialist') == 'Cardiomyopathy' ? 'selected' : '' }}>
-                        Cardiomyopathy</option>
-                    <option value="Arrhythmia" {{ old('specialist') == 'Arrhythmia' ? 'selected' : '' }}>Arrhythmia
-                    </option>
-                    <option value="Hypertension" {{ old('specialist') == 'Hypertension' ? 'selected' : '' }}>Hypertension
-                    </option>
-                </select>
-            </div>
+            
             <div class="form-group mb-3">
                 <label for="address">Address</label>
                 <input type="text" class="form-control" id="address" name="address" value="{{ old('address') }}">

@@ -22,7 +22,6 @@ class Doctor extends Model
         'country',
         'date_of_birth',
         'blood_group',
-        'specialist',
         'specialization',
         'designation',
         'department',
@@ -30,6 +29,7 @@ class Doctor extends Model
         'date_of_joining',
         'work_experience',
         'email',
+        'profile_image',
     ];
 
     /**

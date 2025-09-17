@@ -78,10 +78,7 @@
                 </select>
             </div>
 
-            <div class="form-group mb-3">
-                <label for="specialist">Specialist</label>
-                <input type="text" class="form-control" id="specialist" name="specialist" value="{{ old('specialist', $doctor->specialist) }}">
-            </div>
+            
             
             <div class="form-group mb-3">
                 <label for="specialization">Specialization</label>
