@@ -29,6 +29,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::view('/patient', 'admin.patient')->name('patient');
     Route::view('/appointment', 'admin.appointment')->name('appointment');
     Route::view('/doctor-details', 'admin.doctor-details')->name('doctor-details');
+    Route::resource('doctors', DoctorController::class);
 
     // Routes with Controllers
     Route::resource('doctors', DoctorController::class);

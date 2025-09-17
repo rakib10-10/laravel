@@ -39,4 +39,9 @@ class Doctor extends Model
     {
         return $this->belongsTo(User::class);
     }
+    public function edit($id)
+{
+    $doctor = Doctor::findOrFail($id); // This will find the doctor or fail with a 404.
+    return view('admin.doctors.edit', compact('doctor'));
+}
 }

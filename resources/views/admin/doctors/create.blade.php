@@ -13,7 +13,7 @@
     <div class="container">
         <h2>Add New Doctor</h2>
 
-        <form action="{{ route('admin.doctors.store') }}" method="POST">
+        <form action="{{ route('admin.doctors.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
 
             <div class="form-group mb-3">
@@ -25,6 +25,11 @@
                 <label for="email">Email Address</label>
                 <input type="email" class="form-control" id="email" name="email" required
                     value="{{ old('email') }}">
+            </div>
+            
+            <div class="form-group mb-3">
+                <label for="profile_image">Profile Image</label>
+                <input type="file" class="form-control" id="profile_image" name="profile_image">
             </div>
 
             <div class="form-group mb-3">

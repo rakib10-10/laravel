@@ -111,8 +111,8 @@
                                 <i class="fa-solid fa-user-doctor"></i> Doctors
                             </a>
                             <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                                <a class="dropdown-item {{ Request::routeIs('admin.doctor-details') ? 'active' : '' }}"
-                                    href="{{ route('admin.doctor-details') }}">
+                                <a class="dropdown-item {{ Request::routeIs('admin.doctors.index') ? 'active' : '' }}"
+                                    href="{{ route('admin.doctors.index') }}">
                                     <i class="fa-solid fa-user-doctor"></i> All Doctors
                                 </a>
                                 <a class="dropdown-item {{ Request::routeIs('admin.doctors.create') ? 'active' : '' }}"
