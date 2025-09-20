@@ -1,12 +1,13 @@
 <?php
 
+
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\PatientController;
 use App\Http\Controllers\DoctorController;
 use App\Http\Controllers\MedicineController;
-
+use App\Http\Controllers\AppointmentController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -30,6 +31,20 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::view('/appointment', 'admin.appointment')->name('appointment');
     Route::view('/doctor-details', 'admin.doctor-details')->name('doctor-details');
     Route::resource('doctors', DoctorController::class);
+
+    // Use a resource route for appointments for RESTful actions (index, create, store, etc.)
+    Route::resource('appointments', AppointmentController::class);
+    
+    
+
+    Route::get('/appointment', [AppointmentController::class, 'create'])->name('appointment');
+// or
+   
+
+    // Specific route to fetch doctor schedules
+    Route::get('/appointments/schedules/{doctor}', [AppointmentController::class, 'getSchedules'])->name('appointments.schedules');
+   
+
 
     // Routes with Controllers
     Route::resource('doctors', DoctorController::class);
