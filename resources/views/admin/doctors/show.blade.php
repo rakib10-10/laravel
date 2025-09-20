@@ -64,5 +64,38 @@
             </div>
         </div>
     </div>
+    
+    {{-- New Section for Doctor Schedules --}}
+    <div class="card shadow-sm mt-4">
+        <div class="card-header">
+            <h4>Doctor's Schedule</h4>
+        </div>
+        <div class="card-body">
+            @if($doctor->schedules->isEmpty())
+                <div class="alert alert-info" role="alert">
+                    No schedules found for this doctor.
+                </div>
+            @else
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Available Day</th>
+                            <th>Start Time</th>
+                            <th>End Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($doctor->schedules as $schedule)
+                            <tr>
+                                <td>{{ $schedule->available_day }}</td>
+                                <td>{{ $schedule->start_time }}</td>
+                                <td>{{ $schedule->end_time }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            @endif
+        </div>
+    </div>
 </div>
 @endsection

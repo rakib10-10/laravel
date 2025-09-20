@@ -32,7 +32,6 @@
                 <input type="file" class="form-control" id="profile_image" name="profile_image">
             </div>
             
-
             <div class="form-group mb-3">
                 <label for="date_of_birth">Date of Birth</label>
                 <input type="date" class="form-control" id="date_of_birth" name="date_of_birth" required
@@ -112,8 +111,77 @@
                 <input type="number" class="form-control" id="work_experience" name="work_experience" required
                     value="{{ old('work_experience') }}">
             </div>
+            <hr class="my-4">
 
+            <h3>Add Doctor Schedules</h3>
+            <div id="schedule-container">
+                </div>
+            <button type="button" class="btn btn-secondary mb-3" id="add-schedule">Add Schedule</button>
             <button type="submit" class="btn btn-primary">Save Doctor</button>
         </form>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const container = document.getElementById('schedule-container');
+            const addButton = document.getElementById('add-schedule');
+            let scheduleIndex = 0;
+
+            // Function to create and append a new schedule block
+            function addScheduleBlock() {
+                const newScheduleBlock = document.createElement('div');
+                newScheduleBlock.classList.add('schedule-block', 'p-3', 'border', 'rounded', 'mb-3');
+                newScheduleBlock.innerHTML = `
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group mb-3">
+                                <label for="available_day_${scheduleIndex}">Available Day</label>
+                                <select class="form-control" id="available_day_${scheduleIndex}" name="schedules[${scheduleIndex}][available_day]" required>
+                                    <option value="" disabled selected>Select Day</option>
+                                    <option value="Monday">Monday</option>
+                                    <option value="Tuesday">Tuesday</option>
+                                    <option value="Wednesday">Wednesday</option>
+                                    <option value="Thursday">Thursday</option>
+                                    <option value="Friday">Friday</option>
+                                    <option value="Saturday">Saturday</option>
+                                    <option value="Sunday">Sunday</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group mb-3">
+                                <label for="start_time_${scheduleIndex}">Start Time</label>
+                                <input type="time" class="form-control" id="start_time_${scheduleIndex}" name="schedules[${scheduleIndex}][start_time]" required>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group mb-3">
+                                <label for="end_time_${scheduleIndex}">End Time</label>
+                                <input type="time" class="form-control" id="end_time_${scheduleIndex}" name="schedules[${scheduleIndex}][end_time]" required>
+                            </div>
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="button" class="btn btn-danger remove-schedule">Remove</button>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(newScheduleBlock);
+                scheduleIndex++;
+            }
+
+            // Event listener for the "Add Schedule" button
+            addButton.addEventListener('click', addScheduleBlock);
+
+            // Event listener for the "Remove" button (uses event delegation)
+            container.addEventListener('click', function (e) {
+                if (e.target.classList.contains('remove-schedule')) {
+                    e.target.closest('.schedule-block').remove();
+                }
+            });
+
+            // Add one schedule block by default on page load
+            addScheduleBlock();
+        });
+    </script>
+
 @endsection

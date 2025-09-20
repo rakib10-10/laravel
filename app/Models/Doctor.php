@@ -44,4 +44,10 @@ class Doctor extends Model
     $doctor = Doctor::findOrFail($id); // This will find the doctor or fail with a 404.
     return view('admin.doctors.edit', compact('doctor'));
 }
+
+// app/Models/Doctor.php
+public function schedules()
+{
+    return $this->hasMany(Schedule::class);
+}
 }

@@ -34,6 +34,7 @@ class DoctorController extends Controller
      */
     public function store(Request $request)
     {
+
         // 1. Validate the form data, including the image.
         $validatedData = $request->validate([
             'name' => 'required|string|max:255',
@@ -86,6 +87,41 @@ class DoctorController extends Controller
             'work_experience' => $validatedData['work_experience'],
             'profile_image' => $imageName, // Save the image name
         ]);
+
+        $doctor = Doctor::where('user_id', $user->id)->first();
+        
+        if ($request->has('schedules') && is_array($request->schedules)) {
+            $schedules = $request->schedules;
+            
+            $dayMap = [
+                'Monday' => 'Mon',
+                'Tuesday' => 'Tue',
+                'Wednesday' => 'Wed',
+                'Thursday' => 'Thu',
+                'Friday' => 'Fri',
+                'Saturday' => 'Sat',
+                'Sunday' => 'Sun',
+            ];
+
+            $validatedSchedules = collect($schedules)->map(function ($schedule) use ($dayMap) {
+                // Convert the full day name to the abbreviated version
+                $abbreviatedDay = $dayMap[$schedule['available_day']] ?? null;
+
+                // Ensure the abbreviated day exists before returning
+                if ($abbreviatedDay) {
+                    return [
+                        'available_day' => $abbreviatedDay,
+                        'start_time' => $schedule['start_time'],
+                        'end_time' => $schedule['end_time'],
+                    ];
+                }
+                return null;
+            })->filter()->all(); // filter() removes any null entries
+
+            // Use createMany to insert all schedules at once
+            $doctor->schedules()->createMany($validatedSchedules);
+        }
+
 
         return redirect()->route('admin.doctors.index')->with('success', 'Doctor created successfully!');
     }
