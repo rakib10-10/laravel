@@ -1,6 +1,6 @@
 @extends('admin.home')
 
-@section('doctors')
+@section('content')
     @if ($errors->any())
         <div class="alert alert-danger">
             <ul>

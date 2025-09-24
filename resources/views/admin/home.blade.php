@@ -1,19 +1,21 @@
 <!doctype html>
-<html lang="en">
-
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
-    <title>PUC Medic Dashboard</title>
+    <title>{{ config('app.name', 'PUC Medic Dashboard') }}</title>
     <meta charset="utf-8">
-    <link rel="icon" type="image/png" href="{{ asset('images/hospital_logo.png') }}">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
+    <!-- CSRF Token -->
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
+    <!-- Bootstrap & FontAwesome -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <script src="https://cdn.jsdelivr.net/netdna.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
+    <!-- Vite (for Laravel assets like app.js, app.scss) -->
+    @vite(['resources/sass/app.scss', 'resources/js/app.js'])
+
     <style>
-        /* Modern Color Palette & Typography */
         :root {
             --primary-color: #007bff;
             --secondary-color: #6c757d;
@@ -27,20 +29,18 @@
             --shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
             --shadow-lg: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
         }
-
         body {
             font-family: 'Segoe UI', Arial, sans-serif;
             background-color: var(--background-light);
             color: var(--text-dark);
             margin: 0;
             padding: 0;
-            overflow-x: hidden; /* Prevent horizontal scroll */
+            overflow-x: hidden;
         }
-
-        /* Sidebar styling */
+        /* Sidebar */
         #sidebarMenu {
             position: fixed;
-            top: 0;
+            top: 56px; /* navbar height */
             bottom: 0;
             left: 0;
             width: 250px;
@@ -48,99 +48,36 @@
             padding: 20px;
             overflow-y: auto;
             border-right: 1px solid var(--border-color);
-            transition: width 0.3s ease, transform 0.3s ease;
-            z-index: 1000;
             box-shadow: var(--shadow-lg);
         }
-
-        /* Adjust main content */
         main {
             margin-left: 250px;
+            margin-top: 56px; /* navbar height */
             padding: 40px;
-            transition: margin-left 0.3s ease;
         }
-
-        /* Sidebar Branding */
-        .sidebar-brand {
-            text-align: center;
-            margin-bottom: 2rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .sidebar-brand img {
-            width: 70px;
-            height: auto;
-            display: block;
-            margin: 0 auto;
-            transition: transform 0.3s ease;
-        }
-
-        .sidebar-brand img:hover {
-            transform: scale(1.05);
-        }
-
-        .sidebar-brand span {
-            display: block;
-            font-weight: 700;
-            margin-top: 0.75rem;
-            font-size: 1.5rem;
-            color: var(--text-dark);
-        }
-
-        /* Sidebar links */
+        .sidebar-brand { text-align: center; margin-bottom: 2rem; }
+        .sidebar-brand img { width: 70px; display: block; margin: 0 auto; }
+        .sidebar-brand span { display: block; font-weight: 700; margin-top: 0.75rem; font-size: 1.5rem; }
         #sidebarMenu .nav-link {
             color: var(--text-light);
             padding: 1rem 1.5rem;
             border-radius: 8px;
             margin-bottom: 0.5rem;
-            transition: background-color 0.3s ease, color 0.3s ease, transform 0.2s ease;
+            transition: 0.3s;
             display: flex;
             align-items: center;
             font-weight: 500;
         }
-
         #sidebarMenu .nav-link:hover {
             color: var(--primary-color);
             background-color: var(--background-light);
             transform: translateX(5px);
         }
-
         #sidebarMenu .nav-link.active {
             color: #fff !important;
             background-color: var(--primary-color) !important;
-            box-shadow: var(--shadow-sm);
-            transform: translateX(0); /* Reset transform for active link */
         }
-
-        #sidebarMenu .nav-link i {
-            margin-right: 15px;
-            font-size: 1.2rem;
-        }
-
-        /* Dropdown menu styling */
-        .dropdown-menu {
-            border: none;
-            box-shadow: var(--shadow-lg);
-            border-radius: 8px;
-        }
-
-        .dropdown-item {
-            color: var(--text-dark);
-            padding: 10px 20px;
-            transition: background-color 0.2s ease, color 0.2s ease;
-        }
-
-        .dropdown-item:hover {
-            background-color: var(--primary-color);
-            color: #fff;
-        }
-
-        .dropdown-item i {
-            margin-right: 10px;
-        }
-
-        /* Main content container */
+        #sidebarMenu .nav-link i { margin-right: 15px; }
         .content-container {
             padding: 20px;
             background: var(--card-bg);
@@ -148,97 +85,128 @@
             box-shadow: var(--shadow-sm);
             min-height: 80vh;
         }
-
-        h2.page-title {
-            color: var(--primary-color);
-            margin-bottom: 20px;
-            font-weight: 600;
-        }
+        h2.page-title { color: var(--primary-color); margin-bottom: 20px; font-weight: 600; }
     </style>
 </head>
 
 <body>
+    <!-- TOP NAVBAR -->
+    <nav class="navbar navbar-expand-md navbar-light bg-white shadow-sm fixed-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{{ url('/') }}">
+                {{ config('PUC MEDIC', 'PUC MEDIC') }}
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
+                    aria-expanded="false" aria-label="{{ __('Toggle navigation') }}">
+                <span class="navbar-toggler-icon"></span>
+            </button>
 
-    <div class="container-fluid">
-        <div class="row">
-
-            <nav id="sidebarMenu" class="d-md-block sidebar">
-                <div class="sidebar-sticky pt-3">
-
-                    <div class="sidebar-brand">
-                        <img src="{{ asset('images/hospital_logo.png') }}" alt="Hospital Logo">
-                        <span>PUC MEDIC</span>
-                    </div>
-
-                    <ul class="nav flex-column">
-                        <li class="nav-item">
-                            <a class="nav-link {{ Request::routeIs('admin.dashboard') ? 'active' : '' }}"
-                                href="{{ route('admin.dashboard') }}">
-                                <i class="fa-solid fa-gauge"></i> Dashboard
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {{ Request::routeIs('admin.patient') ? 'active' : '' }}"
-                                href="{{ route('admin.patient') }}">
-                                <i class="fa-solid fa-hospital-user"></i> Patients
-                            </a>
-                        </li>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav me-auto"></ul>
+                <ul class="navbar-nav ms-auto">
+                    @guest
+                        @if (Route::has('login'))
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('login') }}">{{ __('Login') }}</a>
+                            </li>
+                        @endif
+                        @if (Route::has('register'))
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('register') }}">{{ __('Register') }}</a>
+                            </li>
+                        @endif
+                    @else
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
-                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <i class="fa-solid fa-user-doctor"></i> Doctors
+                            <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button"
+                               data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
+                                {{ Auth::user()->name }}
                             </a>
-                            <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                                <a class="dropdown-item {{ Request::routeIs('admin.doctors.index') ? 'active' : '' }}"
-                                    href="{{ route('admin.doctors.index') }}">
-                                    <i class="fa-solid fa-user-doctor"></i> All Doctors
+                            <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                                <a class="dropdown-item" href="{{ route('logout') }}"
+                                   onclick="event.preventDefault();
+                                            document.getElementById('logout-form').submit();">
+                                    {{ __('Logout') }}
                                 </a>
-                                <a class="dropdown-item {{ Request::routeIs('admin.doctors.create') ? 'active' : '' }}"
-                                    href="{{ route('admin.doctors.create') }}">
-                                    <i class="fa-solid fa-user-plus"></i> Add New Doctor
-                                </a>
+                                <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
+                                    @csrf
+                                </form>
                             </div>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link {{ Request::routeIs('admin.medicines.index') ? 'active' : '' }}"
-                                href="{{ route('admin.medicines.index') }}">
-                                <i class="fa-solid fa-pills"></i> Medicines
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {{ Request::routeIs('admin.reports.index') ? 'active' : '' }}"
-                                href="{{ route('admin.reports.index') }}">
-                                <i class="fa-solid fa-chart-line"></i> Reports
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {{ Request::routeIs('admin.appointment') ? 'active' : '' }}"
-                                href="{{ route('admin.appointment') }}">
-                                <i class="fa-solid fa-layer-group"></i> Appointment
-                            </a>
-                        </li>
-                    </ul>
-
-                </div>
-            </nav>
-
-            <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-md-4">
-                <div class="content-container">
-                    <h2 class="page-title">Dashboard Overview</h2>
-                    @yield('dashboard')
-                    @yield('patient')
-                    @yield('doctors')
-                    @yield('medicines')
-                    @yield('reports')
-                    @yield('appointment')
-                </div>
-            </main>
+                    @endguest
+                </ul>
+            </div>
         </div>
-    </div>
+    </nav>
 
+    <!-- SIDEBAR -->
+    <nav id="sidebarMenu">
+        <div class="sidebar-sticky pt-3">
+            <div class="sidebar-brand">
+                <img src="{{ asset('images/hospital_logo.png') }}" alt="Hospital Logo">
+                <span>PUC MEDIC</span>
+            </div>
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link {{ Request::routeIs('admin.dashboard') ? 'active' : '' }}"
+                       href="{{ route('admin.dashboard') }}">
+                        <i class="fa-solid fa-gauge"></i> Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{ Request::routeIs('admin.patient') ? 'active' : '' }}"
+                       href="{{ route('admin.patient') }}">
+                        <i class="fa-solid fa-hospital-user"></i> Patients
+                    </a>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
+                       data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <i class="fa-solid fa-user-doctor"></i> Doctors
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                        <a class="dropdown-item {{ Request::routeIs('admin.doctors.index') ? 'active' : '' }}"
+                           href="{{ route('admin.doctors.index') }}">
+                            <i class="fa-solid fa-user-doctor"></i> All Doctors
+                        </a>
+                        <a class="dropdown-item {{ Request::routeIs('admin.doctors.create') ? 'active' : '' }}"
+                           href="{{ route('admin.doctors.create') }}">
+                            <i class="fa-solid fa-user-plus"></i> Add New Doctor
+                        </a>
+                    </div>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{ Request::routeIs('admin.medicines.index') ? 'active' : '' }}"
+                       href="{{ route('admin.medicines.index') }}">
+                        <i class="fa-solid fa-pills"></i> Medicines
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{ Request::routeIs('admin.reports.index') ? 'active' : '' }}"
+                       href="{{ route('admin.reports.index') }}">
+                        <i class="fa-solid fa-chart-line"></i> Reports
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{ Request::routeIs('admin.appointment') ? 'active' : '' }}"
+                       href="{{ route('admin.appointment') }}">
+                        <i class="fa-solid fa-layer-group"></i> Appointment
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- MAIN CONTENT -->
+    <main>
+        <div class="content-container">
+            @yield('content')
+        </div>
+    </main>
+
+    <!-- Scripts -->
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
 </body>
-
 </html>

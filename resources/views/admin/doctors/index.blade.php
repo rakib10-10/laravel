@@ -1,5 +1,5 @@
 @extends('admin.home')
-@section('doctors')
+@section('content')
     <div class="container">
         <h2 class="mb-4">ALL DOCTORS</h2>
 

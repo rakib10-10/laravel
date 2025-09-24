@@ -1,6 +1,6 @@
 @extends('admin.home')
 
-@section('doctors')
+@section('content')
     <div class="container">
         <h2>Edit Doctor</h2>
 

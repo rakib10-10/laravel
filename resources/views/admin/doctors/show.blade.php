@@ -1,6 +1,6 @@
 @extends('admin.home')
 
-@section('doctors')
+@section('content')
 <div class="container mt-4">
     <h2 class="mb-4">Doctor Profile</h2>
     <a href="{{ route('admin.doctors.index') }}" class="btn btn-secondary mb-3">Back to Doctors List</a>

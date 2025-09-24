@@ -21,16 +21,15 @@ use App\Http\Controllers\AppointmentController;
 
 Route::get('/', function () {
     return view('admin.dashboard');
-})->name('dashboard')->middleware(['auth']);
-
+});
 
 Route::prefix('admin')->name('admin.')->group(function () {
     // Static views
-    Route::view('/home', 'admin.home')->name('home')->middleware(['auth', 'role:admin']);
-    Route::view('/dashboard', 'admin.dashboard')->name('dashboard')->middleware(['auth', 'role:admin']);
-    Route::view('/patient', 'admin.patient')->name('patient')->middleware(['auth', 'role:admin']);
-    Route::view('/appointment', 'admin.appointment')->name('appointment')->middleware(['auth', 'role:admin']);
-    Route::view('/doctor-details', 'admin.doctor-details')->name('doctor-details')->middleware(['auth', 'role:admin']);
+    Route::view('/home', 'admin.home')->name('home');
+    Route::view('/dashboard', 'admin.dashboard')->name('dashboard');
+    Route::view('/patient', 'admin.patient')->name('patient');
+    Route::view('/appointment', 'admin.appointment')->name('appointment');
+    Route::view('/doctor-details', 'admin.doctor-details')->name('doctor-details');
     Route::resource('doctors', DoctorController::class);
 
     // Use a resource route for appointments for RESTful actions (index, create, store, etc.)
@@ -48,7 +47,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
 
     // Routes with Controllers
-    Route::resource('doctors', DoctorController::class)->middleware(['auth', 'role:admin']);
+    Route::resource('doctors', DoctorController::class);
     Route::resource('medicines', MedicineController::class);
     Route::resource('reports', ReportController::class);
 
@@ -57,6 +56,3 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
    
 });
-Auth::routes();
-
-Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');

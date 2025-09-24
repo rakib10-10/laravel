@@ -1,6 +1,6 @@
 @extends('admin.home')
 
-@section('reports')
+@section('content')
 <div class="container py-5">
 
     {{-- Page Title --}}

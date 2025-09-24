@@ -209,4 +209,17 @@ class DoctorController extends Controller
 
         return redirect()->route('admin.doctors.index')->with('success', 'Doctor and associated user account deleted successfully!');
     }
+
+    public function getSchedules($doctorId)
+{
+    $doctor = Doctor::with('schedules')->findOrFail($doctorId);
+
+    return response()->json([
+        'doctor' => $doctor,
+        'schedules' => $doctor->schedules
+    ]);
+}
+
+
+
 }

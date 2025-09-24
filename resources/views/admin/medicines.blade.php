@@ -1,6 +1,7 @@
+
 @extends('admin.home')
 
-@section('medicines')
+@section('content')
 <style>
     /* New modern color palette and typography */
     :root {

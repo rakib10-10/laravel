@@ -1,6 +1,7 @@
+
 @extends('admin.home')
 
-@section('patient')
+@section('content')
 <style>
     body {
         font-family: Arial, sans-serif;

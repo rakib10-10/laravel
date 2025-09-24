@@ -1,3 +1,4 @@
+
 @extends('admin.home')
 <!-- IcoFont CSS -->
 <style>
@@ -72,7 +73,7 @@
   </style>
 
 
-@section('dashboard')
+@section('content')
 <h1 class="text-center">Dashboard</h1>
 
 <div class="container mt-6">
