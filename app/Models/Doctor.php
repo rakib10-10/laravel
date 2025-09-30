@@ -46,8 +46,7 @@ class Doctor extends Model
 }
 
 // app/Models/Doctor.php
-public function schedules()
-{
+public function schedules() {
     return $this->hasMany(Schedule::class);
 }
 }

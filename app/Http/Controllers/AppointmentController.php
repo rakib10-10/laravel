@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Appointment;
 use App\Models\Doctor;
 use Illuminate\Http\Request;
+use App\Models\DoctorSchedule;
+
 
 class AppointmentController extends Controller
 {
@@ -51,10 +53,12 @@ class AppointmentController extends Controller
     /**
      * Fetch doctor's schedules.
      */
-    public function getSchedules(Request $request)
-    {
-        $doctorId = $request->input('doctor_id');
-        $schedules = Doctor::find($doctorId)->schedules; // Assuming a 'schedules' relationship
-        return response()->json($schedules);
-    }
+    public function getSchedules($doctorId)
+{
+    $schedules = DoctorSchedule::where('doctor_id', $doctorId)->get();
+
+    return response()->json([
+        'schedules' => $schedules
+    ]);
+}
 }

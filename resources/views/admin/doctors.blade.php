@@ -1,4 +1,4 @@
-@extends('admin.home')
+{{-- @extends('admin.home')
 @section('doctors')
     <!DOCTYPE html>
 <html lang="en">
@@ -142,4 +142,4 @@
 
 </body>
 </html>
-@endsection
+@endsection --}}

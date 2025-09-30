@@ -9,15 +9,11 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
-        Schema::table('doctors', function (Blueprint $table) {
-            // Add the new column
-            $table->string('specialist')->after('blood_group'); 
+        Schema::create('appointments', function (Blueprint $table) {
+            $table->id();
+            $table->timestamps();
         });
     }
 
@@ -26,9 +22,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('doctors', function (Blueprint $table) {
-            // Remove the column
-            $table->dropColumn('specialist');
-        });
+        Schema::dropIfExists('appointments');
     }
 };

@@ -1,68 +1,79 @@
 @extends('admin.home')
 
-@section('appointment')
-<style>
-    .confirmation-container {
-        max-width: 600px;
-        margin: 40px auto;
-        padding: 40px;
-        background: #e6f7ff;
-        border-radius: 15px;
-        border: 2px solid #a8dadc;
-        text-align: center;
-        font-family: 'Segoe UI', sans-serif;
-    }
+@section('content')
+<div class="container mt-4">
+    <h2>Book Appointment</h2>
 
-    .confirmation-container h1 {
-        color: #1d3557;
-        font-size: 2.5rem;
-        margin-bottom: 10px;
-    }
+    <form action="{{ route('appointments.store') }}" method="POST">
+        @csrf
 
-    .confirmation-container p {
-        color: #457b9d;
-        font-size: 1.1rem;
-        margin-bottom: 20px;
-    }
+        {{-- Patient (hidden if logged in as patient, or selectable if admin) --}}
+        <input type="hidden" name="patient_id" value="{{ auth()->user()->patient->id ?? '' }}">
 
-    .details-box {
-        background: #ffffff;
-        padding: 25px;
-        border-radius: 10px;
-        text-align: left;
-        border: 1px solid #e0e0e0;
-    }
+        {{-- Doctor Select --}}
+        <div class="form-group mb-3">
+            <label for="doctor_id">Select Doctor:</label>
+            <select name="doctor_id" id="doctor_id" class="form-select" required>
+                <option value="">-- Select Doctor --</option>
+                @foreach($doctors as $doctor)
+                    <option value="{{ $doctor->id }}">{{ $doctor->name }}</option>
+                @endforeach
+            </select>
+        </div>
 
-    .details-box h3 {
-        color: #1d3557;
-        font-size: 1.5rem;
-        margin-bottom: 15px;
-    }
+        {{-- Appointment Date --}}
+        <div class="form-group mb-3">
+            <label for="appointment_date">Appointment Date:</label>
+            <input type="date" name="appointment_date" id="appointment_date" class="form-control" required>
+        </div>
 
-    .details-box strong {
-        color: #457b9d;
-        display: inline-block;
-        width: 150px;
-    }
+        {{-- Available Time Slots (loaded dynamically) --}}
+        <div class="form-group mb-3">
+            <label for="schedule_id">Available Time:</label>
+            <select name="schedule_id" id="time_slot" class="form-select" required>
+                <option value="">-- Select Time --</option>
+            </select>
+        </div>
 
-    .details-box span {
-        font-weight: 500;
-        color: #666;
-    }
-</style>
+        {{-- Notes --}}
+        <div class="form-group mb-3">
+            <label for="notes">Notes:</label>
+            <textarea name="notes" id="notes" class="form-control"></textarea>
+        </div>
 
-<div class="confirmation-container">
-    <h1>Appointment Booked!</h1>
-    <p>Your appointment has been successfully scheduled. We look forward to seeing you!</p>
-    
-    <div class="details-box">
-        <h3>Appointment Details</h3>
-        <p><strong>Doctor:</strong> <span>{{ $appointment->doctor->name }}</span></p>
-        <p><strong>Date:</strong> <span>{{ \Carbon\Carbon::parse($appointment->appointment_date)->format('F d, Y') }}</span></p>
-        <p><strong>Status:</strong> <span>{{ ucfirst($appointment->status) }}</span></p>
-        @if($appointment->notes)
-            <p><strong>Notes:</strong> <span>{{ $appointment->notes }}</span></p>
-        @endif
-    </div>
+        <button type="submit" class="btn btn-primary">Book Appointment</button>
+    </form>
 </div>
+@endsection
+
+{{-- Scripts --}}
+@section('scripts')
+<script>
+document.getElementById('doctor_id').addEventListener('change', function() {
+    let doctorId = this.value;
+    let timeSlotSelect = document.getElementById('time_slot');
+    timeSlotSelect.innerHTML = '<option>Loading...</option>';
+
+    if (!doctorId) {
+        timeSlotSelect.innerHTML = '<option value="">-- Select Time --</option>';
+        return;
+    }
+
+    fetch(`/admin/appointments/schedules/${doctorId}`)
+        .then(res => res.json())
+        .then(data => {
+            timeSlotSelect.innerHTML = '<option value="">-- Select Time --</option>';
+            data.schedules.forEach(schedule => {
+                let option = document.createElement('option');
+                option.value = schedule.id;
+                option.textContent = `${schedule.available_day} (${schedule.start_time} - ${schedule.end_time})`;
+                timeSlotSelect.appendChild(option);
+            });
+        })
+        .catch(err => {
+            timeSlotSelect.innerHTML = '<option>Error loading times</option>';
+            console.error(err);
+        });
+});
+</script>
 @endsection

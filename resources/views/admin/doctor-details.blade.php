@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+{{-- <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -173,4 +173,4 @@
 
 <script src="{{ asset('js/doctor-profile.js') }}"></script>
 </body>
-</html>
+</html> --}}
