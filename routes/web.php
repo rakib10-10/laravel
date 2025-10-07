@@ -7,8 +7,12 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\DoctorController;
 use App\Http\Controllers\MedicineController;
-use App\Http\Controllers\AppointmentController;
 
+// --- ROLE-SPECIFIC APPOINTMENT CONTROLLERS (FIXED) ---
+// These now correctly point to the controllers inside their respective folders (namespaces)
+use App\Http\Controllers\Admin\AdminAppointmentController;
+use App\Http\Controllers\Doctor\DoctorAppointmentController;
+use App\Http\Controllers\Patient\PatientAppointmentController;
 
 use App\Http\Controllers\Doctor\DoctorHomeController;
 use App\Http\Controllers\Patient\PatientHomeController;
@@ -42,10 +46,9 @@ Route::prefix('patient')->name('patient.')->middleware(['auth', 'role:patient'])
     // Patient Dashboard
     Route::get('/dashboard', [PatientHomeController::class, 'index'])->name('dashboard');
 
-    // Appointment submission (placeholder)
-    Route::post('/appointment/store', function (\Illuminate\Http\Request $request) {
-        return redirect()->route('patient.dashboard')->with('status', 'Appointment submitted.');
-    })->name('appointment.store');
+    // APPOINTMENTS: View and Create/Book
+    Route::get('/appointments', [PatientAppointmentController::class, 'index'])->name('appointments.index');
+    Route::post('/appointments', [PatientAppointmentController::class, 'store'])->name('appointments.store');
 
     // Patient Medical History
     Route::get('/my-history', fn() => view('patient.history'))->name('history');
@@ -61,7 +64,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
 
     // Resource controllers
     Route::resource('doctors', DoctorController::class);
-    Route::resource('appointments', AppointmentController::class);
+    
+    // Correctly defined AdminAppointmentController resource
+    Route::resource('appointments', AdminAppointmentController::class); 
+    
     Route::resource('medicines', MedicineController::class);
     Route::resource('reports', ReportController::class);
 
@@ -76,11 +82,40 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
 // --- DOCTOR ROUTES ---
 Route::prefix('doctor')->name('doctor.')->middleware(['auth', 'role:doctor'])->group(function () {
     Route::get('/dashboard', [DoctorHomeController::class, 'index'])->name('dashboard');
-    // Add more doctor-specific routes here
+
+    // APPOINTMENTS: View and Update Status
+    // DoctorAppointmentController is now imported from App\Http\Controllers\Doctor\DoctorAppointmentController
+    Route::get('/appointments', [DoctorAppointmentController::class, 'index'])->name('appointments.index');
+    Route::put('/appointments/{appointment}', [DoctorAppointmentController::class, 'updateStatus'])->name('appointments.update');
 });
 
 // --- LOGOUT ROUTE FIX ---
+// The original Auth::routes() handles /logout, but this is often added for clarity or custom force-logout links.
 Route::get('/logout', function () {
     Auth::logout();
     return redirect('/')->with('status', 'You have been logged out.');
 })->name('logout.force');
+
+// REMOVED: Redundant and misplaced Route::resource('appointments', ...) line that was here.
+// Example routes/web.php setup for Patient access
+
+use App\Models\Doctor;
+
+Route::middleware(['auth', 'role:patient'])->prefix('patient')->name('patient.')->group(function () {
+    Route::resource('appointments', PatientAppointmentController::class)->only(['index', 'create', 'store']);
+    
+    // Route for AJAX schedule fetching
+    Route::get('/doctors/{doctor}/schedules', [PatientAppointmentController::class, 'getSchedules'])->name('doctors.schedules');
+});
+
+// IMPORTANT: The {doctor} parameter in the route above assumes Route Model Binding works 
+// for the mock Doctor model using its ID.
+Route::middleware(['auth', 'role:patient'])->prefix('patient')->name('patient.')->group(function () {
+    // Existing Appointment Routes
+    Route::resource('appointments', PatientAppointmentController::class);
+
+    // NEW AJAX ROUTE: Fetch schedules for a specific doctor
+    // The {doctor} parameter will automatically resolve to a Doctor model instance (Route Model Binding)
+    Route::get('/doctors/{doctor}/schedules', [PatientAppointmentController::class, 'getSchedules'])
+        ->name('doctors.schedules');
+});

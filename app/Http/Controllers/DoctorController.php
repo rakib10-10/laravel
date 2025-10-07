@@ -127,7 +127,7 @@ class DoctorController extends Controller
     }
 
     /**
-     * Display the specified resource.
+     * Display the specified resource. (For Admin View)
      */
     public function show(Doctor $doctor)
     {
@@ -210,16 +210,16 @@ class DoctorController extends Controller
         return redirect()->route('admin.doctors.index')->with('success', 'Doctor and associated user account deleted successfully!');
     }
 
+    /**
+     * API Endpoint: Fetch doctor details and their schedules.
+     */
     public function getSchedules($doctorId)
-{
-    $doctor = Doctor::with('schedules')->findOrFail($doctorId);
+    {
+        $doctor = Doctor::with('schedules')->findOrFail($doctorId);
 
-    return response()->json([
-        'doctor' => $doctor,
-        'schedules' => $doctor->schedules
-    ]);
-}
-
-
-
+        return response()->json([
+            'doctor' => $doctor,
+            'schedules' => $doctor->schedules
+        ]);
+    }
 }

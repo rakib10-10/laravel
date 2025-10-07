@@ -29,7 +29,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::view('/dashboard', 'admin.dashboard')->name('dashboard');
     Route::view('/patient', 'admin.patient')->name('patient');
     Route::view('/appointment', 'admin.appointment')->name('appointment');
-    Route::view('/doctor-details', 'admin.doctor-details')->name('doctor-details');
+    Route::view('/doctor-details', 'admin.doctor.index')->name('doctor-details');
     Route::resource('doctors', DoctorController::class);
 
     // Use a resource route for appointments for RESTful actions (index, create, store, etc.)

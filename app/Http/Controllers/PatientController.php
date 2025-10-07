@@ -1,6 +1,6 @@
 <?php
-
-namespace App\Http\Controllers\Admin;
+// Only use the namespace corresponding to the file's location (app/Http/Controllers)
+namespace App\Http\Controllers; 
 
 use App\Http\Controllers\Controller;
 use App\Models\Patient;
