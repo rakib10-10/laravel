@@ -2,100 +2,101 @@
 
 @section('content')
 
-<div class="container mx-auto p-4 sm:p-8">
-<div class="flex justify-between items-center mb-6">
-<h1 class="text-3xl font-bold text-gray-800">My Appointments</h1>
-{{-- This button correctly links to the booking form --}}
-<a href="{{ route('patient.appointments.create') }}" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition duration-150 shadow-md flex items-center">
-<i class="fa-solid fa-plus mr-2"></i> Book New Appointment
-</a>
-</div>
-
-@if (session('success'))
-    <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4 rounded-md" role="alert">
-        <p>{{ session('success') }}</p>
+<div class="container py-4">
+    <div class="mb-4">
+        <h1 class="fw-bolder text-dark">My Appointments</h1>
     </div>
-@endif
 
-@if($appointments->isEmpty())
-    <div class="text-center p-10 bg-white rounded-xl shadow-lg">
-        <i class="fa-solid fa-calendar-times text-6xl text-gray-400 mb-4"></i>
-        <p class="text-gray-600 text-lg">You have no scheduled appointments. Start by booking one!</p>
-    </div>
-@else
-    <div class="bg-white shadow-xl rounded-xl overflow-hidden">
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Doctor</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Requested Date</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time Slot</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                        <th class="px-6 py-3">Actions</th>
-                    </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
-                    @foreach ($appointments as $appointment)
-                    <tr>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                            {{ $appointment->doctor->name ?? 'N/A' }}
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {{ \Carbon\Carbon::parse($appointment->scheduled_date)->format('M d, Y') }}
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm">
-                            @if (strtolower($appointment->status) == 'pending' && (empty($appointment->start_time) || empty($appointment->end_time)))
-                                <span class="text-indigo-600 font-semibold">TBA - Awaiting Confirmation</span>
-                            @else
-                                {{ \Carbon\Carbon::parse($appointment->start_time)->format('h:i A') }} -
-                                {{ \Carbon\Carbon::parse($appointment->end_time)->format('h:i A') }}
-                            @endif
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            @php
-                                $statusLower = strtolower($appointment->status);
-                                $statusClass = [
-                                    'pending' => 'bg-yellow-100 text-yellow-800',
-                                    'confirmed' => 'bg-blue-100 text-blue-800',
-                                    'completed' => 'bg-green-100 text-green-800',
-                                    'cancelled' => 'bg-red-100 text-red-800',
-                                ][$statusLower] ?? 'bg-gray-100 text-gray-800';
-                            @endphp
-                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full capitalize {{ $statusClass }}">
-                                {{ $appointment->status }}
-                            </span>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium flex space-x-2 justify-end items-center">
-                            
-                            {{-- View Details Link (Corrected to use 'show' route) --}}
-                            <a href="{{ route('patient.appointments.show', $appointment->id) }}" class="text-blue-600 hover:text-blue-900 text-xs font-bold transition duration-150">
-                                View Details
-                            </a>
-
-                            {{-- Cancel Form (using DELETE method for RESTful API) --}}
-                            @if ($statusLower == 'pending')
-                                <form action="{{ route('patient.appointments.destroy', $appointment->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to cancel this appointment request?');">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="text-red-600 hover:text-red-900 text-xs font-bold transition duration-150 ml-2">
-                                        Cancel Request
-                                    </button>
-                                </form>
-                            @endif
-                        </td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
+    @if (session('success'))
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            {{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
+    @endif
 
-        {{-- Pagination Links --}}
-        <div class="p-4 bg-white border-t border-gray-200">
-            {{ $appointments->links() }}
+    @if($appointments->isEmpty())
+        <div class="card shadow-lg text-center p-5 border-0">
+            <i class="fa-solid fa-calendar-times text-secondary fs-1 mb-3"></i>
+            <p class="text-muted fs-5">You have no scheduled appointments. Start by booking one!</p>
         </div>
-    </div>
-@endif
+    @else
+        <div class="card shadow-lg rounded-3">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="px-3 py-3 text-uppercase text-muted" scope="col">Doctor</th>
+                            <th class="px-3 py-3 text-uppercase text-muted" scope="col">Date</th>
+                            <th class="px-3 py-3 text-uppercase text-muted" scope="col">Time Slot</th>
+                            <th class="px-3 py-3 text-uppercase text-muted" scope="col">Status</th>
+                            <th class="px-3 py-3 text-center" scope="col">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($appointments as $appointment)
+                        <tr>
+                            <td class="px-3 py-3 fw-bold text-dark">
+                                Dr. {{ $appointment->doctor->name ?? 'N/A' }}
+                            </td>
+                            <td class="px-3 py-3 text-muted">
+                                {{ \Carbon\Carbon::parse($appointment->appointment_date)->format('M d, Y') }}
+                            </td>
+                            <td class="px-3 py-3">
+                                @if (strtolower($appointment->status) == 'pending' && (empty($appointment->start_time) || empty($appointment->end_time)))
+                                    <span class="text-primary fw-semibold">TBA - Awaiting Confirmation</span>
+                                @else
+                                    {{ \Carbon\Carbon::parse($appointment->start_time)->format('h:i A') }} -
+                                    {{ \Carbon\Carbon::parse($appointment->end_time)->format('h:i A') }}
+                                @endif
+                            </td>
+                            <td class="px-3 py-3">
+                                @php
+                                    $statusLower = strtolower($appointment->status);
+                                    $statusClass = [
+                                        'pending' => 'text-bg-warning',
+                                        'confirmed' => 'text-bg-primary',
+                                        'completed' => 'text-bg-success',
+                                        'cancelled' => 'text-bg-danger',
+                                    ][$statusLower] ?? 'text-bg-secondary';
+                                @endphp
+                                <span class="badge rounded-pill text-uppercase {{ $statusClass }}">
+                                    {{ $appointment->status }}
+                                </span>
+                            </td>
+                            <td class="px-3 py-3 text-end">
+                                <div class="d-flex justify-content-end align-items-center">
+                                    {{-- View Details Link --}}
+                                    <a href="{{ route('patient.appointments.show', $appointment->id) }}" class="btn btn-sm btn-outline-info me-2">
+                                        Details
+                                    </a>
+
+                                    {{-- Cancel Form (only show if pending) --}}
+                                    @if ($statusLower == 'pending')
+                                        <form action="{{ route('patient.appointments.destroy', $appointment->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to cancel this appointment request?');">
+                                            @csrf
+                                            @method('DELETE')
+                                            {{-- NOTE: Switched to a custom UI element if possible, but kept confirm() for immediate use. --}}
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                Cancel
+                                            </button>
+                                        </form>
+                                    @endif
+                                </div>
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+
+            {{-- Pagination Links --}}
+            {{-- The pagination section has been commented out as requested.
+            <div class="card-footer bg-white border-0">
+                {{ $appointments->links() }}
+            </div>
+            --}}
+        </div>
+    @endif
 
 </div>
 @endsection

@@ -1,19 +1,18 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Auth;
-
+use App\Http\Controllers\Admin\AdminAppointmentController;
+use App\Http\Controllers\Admin\PatientController as AdminPatientController;
 // --- CONTROLLER IMPORTS ---
-use App\Http\Controllers\ReportController;
+use App\Http\Controllers\Doctor\DoctorAppointmentController;
+use App\Http\Controllers\Doctor\DoctorHomeController;
 use App\Http\Controllers\DoctorController;
 use App\Http\Controllers\MedicineController;
-use App\Http\Controllers\Admin\AdminAppointmentController;
-use App\Http\Controllers\Doctor\DoctorAppointmentController;
 use App\Http\Controllers\Patient\PatientAppointmentController;
-use App\Http\Controllers\Doctor\DoctorHomeController;
 use App\Http\Controllers\Patient\PatientHomeController;
-use App\Http\Controllers\Admin\PatientController as AdminPatientController;
 use App\Http\Controllers\PatientController;
+use App\Http\Controllers\ReportController;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
 
 // --- AUTH ROUTES ---
 Auth::routes();
@@ -22,10 +21,17 @@ Auth::routes();
 Route::get('/', function () {
     if (Auth::check()) {
         $role = Auth::user()->role;
-        if ($role === 'admin') return redirect()->route('admin.dashboard');
-        if ($role === 'doctor') return redirect()->route('doctor.dashboard');
-        if ($role === 'patient') return redirect()->route('patient.dashboard');
+        if ($role === 'admin') {
+            return redirect()->route('admin.dashboard');
+        }
+        if ($role === 'doctor') {
+            return redirect()->route('doctor.dashboard');
+        }
+        if ($role === 'patient') {
+            return redirect()->route('patient.dashboard');
+        }
     }
+
     return view('welcome');
 })->name('root');
 
@@ -36,15 +42,16 @@ Route::prefix('patient')->name('patient.')->middleware(['auth', 'role:patient'])
     Route::get('/dashboard', [PatientHomeController::class, 'index'])->name('dashboard');
 
     // Appointments: index, create, store
+    // Appointments: full CRUD for patient (index, create, store, show, destroy)
     Route::resource('appointments', PatientAppointmentController::class)
-         ->only(['index', 'create', 'store']);
+        ->only(['index', 'create', 'store', 'show', 'destroy']);
 
     // AJAX route to fetch doctor schedules
     Route::get('/doctors/{doctor}/schedules', [PatientAppointmentController::class, 'getSchedules'])
-         ->name('doctors.schedules');
+        ->name('doctors.schedules');
 
     // Medical History
-    Route::get('/my-history', fn() => view('patient.history'))->name('history');
+    Route::get('/my-history', fn () => view('patient.history'))->name('history');
 
     // Optional search patients
     Route::get('/search', [PatientController::class, 'search'])->name('search');
@@ -75,5 +82,6 @@ Route::prefix('doctor')->name('doctor.')->middleware(['auth', 'role:doctor'])->g
 // --- LOGOUT ROUTE ---
 Route::get('/logout', function () {
     Auth::logout();
+
     return redirect('/')->with('status', 'You have been logged out.');
 })->name('logout.force');

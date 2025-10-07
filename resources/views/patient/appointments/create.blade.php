@@ -1,18 +1,18 @@
-@extends('layouts.patient_home') 
+@extends('layouts.patient_home')
 
 @section('content')
 <div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-lg-8">
-            <div class="card shadow-lg border-0 rounded-4">
+            <section class="card shadow-lg border-0 rounded-4">
                 <div class="card-body p-4 p-md-5">
-                    <h1 class="card-title text-primary mb-4 pb-2 border-bottom">Book New Appointment</h1>
-                    <p class="text-muted mb-4">Please select a doctor, an available date, and a time slot to proceed with your booking request.</p>
+                    <header class="mb-4 pb-2 border-bottom">
+                        <h1 class="text-primary">Book New Appointment</h1>
+                        <p class="text-muted">Select a doctor, an available date, and a time slot to proceed.</p>
+                    </header>
 
-                    {{-- Display Validation Errors --}}
                     @if ($errors->any())
-                        <div class="alert alert-danger" role="alert">
-                            <h4 class="alert-heading">Booking Error!</h4>
+                        <div class="alert alert-danger">
                             <ul class="mb-0">
                                 @foreach ($errors->all() as $error)
                                     <li>{{ $error }}</li>
@@ -21,213 +21,193 @@
                         </div>
                     @endif
 
-                    <form action="{{ route('patient.appointments.store') }}" method="POST" id="appointment-form">
+                    <form action="{{ route('patient.appointments.store') }}" method="POST" id="appointment-form" novalidate>
                         @csrf
 
-                        {{-- Hidden Inputs --}}
-                        <input type="hidden" name="appointment_date" id="input-date" value="{{ old('appointment_date') }}">
-                        <input type="hidden" name="time_slot" id="input-slot" value="{{ old('time_slot') }}">
+                        {{-- Patient Name (FIX: Added form-control class) --}}
+                        <div class="mb-4">
+                            <label for="patient_name" class="form-label fw-semibold">Your Name</label>
+                            <input type="text" name="patient_name" 
+                                   value="{{ old('patient_name') ?? Auth::user()->name }}" 
+                                   class="form-control" {{-- Added form-control class --}}
+                                   required>
+                        </div>
 
                         {{-- Doctor Selection --}}
                         <div class="mb-4">
                             <label for="doctor_id" class="form-label fw-semibold">Select Doctor</label>
-                            <select id="doctor_id" name="doctor_id" class="form-select @error('doctor_id') is-invalid @enderror">
+                            <select id="doctor_id" name="doctor_id" class="form-select" required>
                                 <option value="">-- Choose a Doctor --</option>
-                                @foreach ($doctors as $doctor)
+                                @foreach($doctors as $doctor)
                                     <option value="{{ $doctor->id }}" {{ old('doctor_id') == $doctor->id ? 'selected' : '' }}>
-                                        Dr. {{ $doctor->name }} ({{ $doctor->specialty ?? 'General Practitioner' }})
+                                        Dr. {{ $doctor->name }} ({{ $doctor->specialty ?? 'General' }})
                                     </option>
                                 @endforeach
                             </select>
-                            @error('doctor_id')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
                         </div>
 
                         {{-- Date Selection --}}
                         <div class="mb-4">
-                            <label for="scheduled_date" class="form-label fw-semibold">Select Date (Up to 7 days ahead)</label>
-                            <input type="date" id="scheduled_date" name="scheduled_date_display"
-                                   min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}"
-                                   max="{{ \Carbon\Carbon::now()->addDays(7)->format('Y-m-d') }}"
-                                   value="{{ old('scheduled_date_display') ?? \Carbon\Carbon::now()->format('Y-m-d') }}"
-                                   class="form-control @error('appointment_date') is-invalid @enderror">
+                            <label for="scheduled_date" class="form-label fw-semibold">Select Date (next 7 days)</label>
+                            <input type="date" id="scheduled_date" name="scheduled_date"
+                                    min="{{ now()->format('Y-m-d') }}"
+                                    max="{{ now()->addDays(7)->format('Y-m-d') }}"
+                                    value="{{ old('scheduled_date') ?? now()->format('Y-m-d') }}"
+                                    class="form-control" required>
                         </div>
 
                         {{-- Available Slots --}}
-                        <div id="slots-container" class="slot-container">
-                            <h3 class="h5 text-secondary mb-3">Available Time Slots</h3>
-                            <div id="loading-indicator" class="text-center text-primary py-3 d-none">
-                                <div class="spinner-border spinner-border-sm me-2" role="status">
-                                    <span class="visually-hidden">Loading...</span>
-                                </div>
-                                Loading schedules...
-                            </div>
-                            <div id="slots-message" class="alert alert-info text-center" role="alert">
-                                Please select a doctor and a date to see available time slots.
+                        <div id="slots-container" class="slot-container mb-4">
+                            <h2 class="h5 text-secondary mb-3">Available Time Slots</h2>
+                            <div id="slots-message" class="alert alert-info text-center">
+                                Please select a doctor and date to see available slots.
                             </div>
                             <div id="slots-list" class="row g-2"></div>
                         </div>
 
+                        <input type="hidden" name="slot_id" id="input-slot">
+
                         {{-- Reason --}}
-                        <div class="mt-4">
-                            <label for="reason" class="form-label fw-semibold">Reason for Appointment (Optional)</label>
-                            <textarea id="reason" name="reason" rows="3" class="form-control" placeholder="Briefly describe the reason for your visit.">{{ old('reason') }}</textarea>
+                        <div class="mb-4">
+                            <label for="reason" class="form-label fw-semibold">Reason (Optional)</label>
+                            <textarea id="reason" name="reason" rows="3" class="form-control">{{ old('reason') }}</textarea>
                         </div>
 
                         {{-- Submit --}}
                         <div class="d-flex justify-content-end mt-5 pt-3 border-top">
-                            <button type="submit" id="submit-button" class="btn btn-primary btn-lg px-5 shadow-sm" 
-                                    {{ (old('appointment_date') && old('time_slot')) ? '' : 'disabled' }}>
+                            <button type="submit" id="submit-button" class="btn btn-primary btn-lg px-5" disabled>
                                 Confirm Booking
                             </button>
                         </div>
                     </form>
                 </div>
-            </div>
+            </section>
         </div>
     </div>
 </div>
 
-{{-- Styles --}}
 <style>
 .slot-button {
-    transition: all 0.2s;
     cursor: pointer;
-    border: 1px solid #0d6efd;
-    background-color: #f0f8ff;
-    color: #0d6efd;
 }
 .slot-button.selected {
-    background-color: #0d6efd !important;
-    color: white !important;
-    border-color: #0d6efd !important;
-    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.5) !important;
+    background-color: #0d6efd;
+    color: white;
 }
-.slot-button:hover:not(.selected) {
-    background-color: #cfe2ff;
+/* Ensure booked slots don't look clickable */
+.slot-button.disabled {
+    cursor: not-allowed;
+    pointer-events: none; /* Prevents click events from firing */
+    opacity: 0.6;
 }
 .slot-container {
     border-top: 1px solid #dee2e6;
-    padding-top: 1.5rem;
-    margin-top: 1rem;
+    padding-top: 1rem;
 }
 </style>
 
-{{-- JS --}}
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     const doctorSelect = document.getElementById('doctor_id');
     const dateInput = document.getElementById('scheduled_date');
     const slotsList = document.getElementById('slots-list');
     const slotsMessage = document.getElementById('slots-message');
-    const loadingIndicator = document.getElementById('loading-indicator');
-    const inputDate = document.getElementById('input-date');
     const inputSlot = document.getElementById('input-slot');
     const submitButton = document.getElementById('submit-button');
 
-    let selectedSlotElement = null;
+    let selectedSlot = null;
 
-    function clearSlotSelection() {
-        if (selectedSlotElement) selectedSlotElement.classList.remove('selected');
-        selectedSlotElement = null;
+    function clearSelection() {
+        if (selectedSlot) selectedSlot.classList.remove('selected');
+        selectedSlot = null;
         inputSlot.value = '';
         submitButton.disabled = true;
     }
 
-    function handleSlotSelection(element, date, slot) {
-        clearSlotSelection();
-        element.classList.add('selected');
-        selectedSlotElement = element;
-        inputDate.value = date;
-        inputSlot.value = slot;
-        submitButton.disabled = false;
-    }
-
-    function renderSlots(schedules, selectedDate) {
+    function renderSlots(slots) {
         slotsList.innerHTML = '';
-        clearSlotSelection();
+        clearSelection();
 
-        const daySchedule = schedules.find(s => s.available_day === selectedDate);
-
-        if (!daySchedule || daySchedule.slots.length === 0) {
-            slotsMessage.textContent = `No available slots for ${selectedDate}. Choose another date or doctor.`;
-            slotsMessage.classList.remove('d-none', 'alert-info');
+        if (!slots.length) {
+            slotsMessage.textContent = `No slots found for ${dateInput.value}.`;
+            slotsMessage.classList.remove('d-none', 'alert-info', 'alert-danger');
             slotsMessage.classList.add('alert-warning');
             return;
         }
 
         slotsMessage.classList.add('d-none');
 
-        daySchedule.slots.forEach(slot => {
-            const [startTime] = slot.split('-');
-            const col = document.createElement('div');
-            col.className = 'col-4 col-sm-3 col-md-2';
-
-            const button = document.createElement('button');
-            button.type = 'button';
-            button.className = 'slot-button btn btn-outline-primary w-100 btn-sm';
-            button.textContent = startTime;
-
-            if (inputSlot.value === slot && inputDate.value === selectedDate) {
-                button.classList.add('selected');
-                selectedSlotElement = button;
-                submitButton.disabled = false;
+        slots.forEach(slot => {
+            const isBooked = slot.is_booked; // Use the status returned by the controller
+            
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.textContent = slot.display;
+            
+            // Determine styling and interactivity based on is_booked status
+            if (isBooked) {
+                // Booked slots are red, disabled, and not clickable
+                btn.className = 'slot-button btn btn-danger disabled col';
+                btn.title = 'This slot is already booked';
+            } else {
+                // Available slots are blue outline and clickable
+                btn.className = 'slot-button btn btn-outline-primary col';
+                
+                btn.addEventListener('click', () => {
+                    clearSelection();
+                    btn.classList.add('selected');
+                    selectedSlot = btn;
+                    inputSlot.value = slot.id;
+                    submitButton.disabled = false;
+                });
             }
 
-            button.addEventListener('click', () => handleSlotSelection(button, selectedDate, slot));
-
-            col.appendChild(button);
-            slotsList.appendChild(col);
+            slotsList.appendChild(btn);
         });
     }
 
-    async function fetchSchedules() {
-        const doctorId = doctorSelect.value;
-        const date = dateInput.value;
-
-        clearSlotSelection();
+    async function fetchSlots() {
+        clearSelection();
         slotsList.innerHTML = '';
-        slotsMessage.classList.add('d-none');
+        slotsMessage.classList.remove('alert-warning', 'alert-danger');
 
-        if (!doctorId || !date) {
-            slotsMessage.textContent = 'Please select both a doctor and a date.';
-            slotsMessage.classList.remove('d-none', 'alert-danger');
+        if (!doctorSelect.value || !dateInput.value) {
+            slotsMessage.textContent = 'Please select a doctor and date to see available slots.';
+            slotsMessage.classList.remove('d-none');
             slotsMessage.classList.add('alert-info');
             return;
         }
 
-        loadingIndicator.classList.remove('d-none');
+        slotsMessage.textContent = 'Loading slots...';
+        slotsMessage.classList.remove('d-none');
+        slotsMessage.classList.add('alert-info');
 
         try {
-            // FIXED URL: matches your web.php route
-            const response = await fetch(`/patient/doctors/${doctorId}/schedules?date=${date}`);
-            if (!response.ok) throw new Error(`Server returned ${response.status}`);
-            const data = await response.json();
+            const res = await fetch(`/patient/doctors/${doctorSelect.value}/schedules?date=${dateInput.value}`);
+            const data = await res.json();
 
-            if (!data.schedules || !Array.isArray(data.schedules)) throw new Error('Invalid data format');
-
-            renderSlots(data.schedules, date);
-
-        } catch (error) {
-            console.error(error);
-            slotsMessage.textContent = 'Error loading schedules. Check console for details.';
-            slotsMessage.classList.remove('d-none', 'alert-info', 'alert-warning');
+            if (data.success) {
+                renderSlots(data.slots);
+            } else {
+                slotsMessage.textContent = data.message || 'Error fetching slots.';
+                slotsMessage.classList.remove('d-none', 'alert-info');
+                slotsMessage.classList.add('alert-danger');
+            }
+        } catch (err) {
+            console.error('Fetch error:', err);
+            slotsMessage.textContent = 'A network error occurred while loading slots.';
+            slotsMessage.classList.remove('d-none', 'alert-info');
             slotsMessage.classList.add('alert-danger');
-        } finally {
-            loadingIndicator.classList.add('d-none');
         }
     }
 
-    doctorSelect.addEventListener('change', fetchSchedules);
-    dateInput.addEventListener('change', fetchSchedules);
+    doctorSelect.addEventListener('change', fetchSlots);
+    dateInput.addEventListener('change', fetchSlots);
 
+    // Initial load if old input exists (e.g., after a validation error)
     if (doctorSelect.value && dateInput.value) {
-        inputDate.value = dateInput.value;
-        fetchSchedules();
+        fetchSlots();
     }
 });
-
 </script>
-
 @endsection
