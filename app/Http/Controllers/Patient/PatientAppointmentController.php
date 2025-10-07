@@ -3,13 +3,11 @@
 namespace App\Http\Controllers\Patient;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Http\Request;
+use App\Models\Appointment;
+use App\Models\Doctor;
+// Assuming this model exists
+use Illuminate\Http\Request;      // Assuming this model exists
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\DB;
-use App\Models\Appointment; // Assuming this model exists
-use App\Models\Doctor;      // Assuming this model exists
 
 class PatientAppointmentController extends Controller
 {
@@ -21,9 +19,9 @@ class PatientAppointmentController extends Controller
         $patientId = Auth::id();
 
         $appointments = Appointment::where('patient_id', $patientId)
-                                   ->with('doctor') // Eager load doctor details
-                                   ->latest()
-                                   ->paginate(15);
+            ->with('doctor') // Eager load doctor details
+            ->latest()
+            ->paginate(15);
 
         return view('patient.appointments.index', compact('appointments'));
     }
@@ -46,93 +44,82 @@ class PatientAppointmentController extends Controller
      * recurring schedules into a list of specific upcoming dates and slots.
      * This is called via AJAX from the appointment creation form.
      *
-     * @param Request $request
-     * @param Doctor $doctor The doctor instance provided by route model binding.
+     * @param  Doctor  $doctor  The doctor instance provided by route model binding.
      * @return \Illuminate\Http\JsonResponse
      */
     public function getSchedules(Request $request, Doctor $doctor)
     {
-        $schedulesData = [];
-        $today = Carbon::today();
+        $date = $request->query('date'); // From JS query parameter
+        if (! $date) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Date is required.',
+            ]);
+        }
+
+        $today = \Carbon\Carbon::today();
+        $requestedDate = \Carbon\Carbon::parse($date);
         $daysToLookAhead = 7;
 
-        // 1. Fetch the doctor's recurring schedules (indexed by short day name: Mon, Tue, etc.)
-        $recurringSchedules = DB::table('doctor_schedules')
-                                ->where('doctor_id', $doctor->id)
-                                ->get()
-                                ->keyBy(fn($schedule) => substr($schedule->available_day, 0, 3));
+        // Only allow dates from today up to 7 days ahead
+        if ($requestedDate->lt($today) || $requestedDate->gt($today->copy()->addDays($daysToLookAhead))) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid date. Choose within the next 7 days.',
+            ]);
+        }
 
-        // 2. Fetch all existing bookings for the next 7 days for this doctor
-        $bookedSlots = Appointment::query()
+        // Get the day short name (Mon, Tue, etc.)
+        $dayShortName = $requestedDate->format('D');
+
+        // Fetch the doctor's schedule for that day
+        $schedule = \DB::table('doctor_schedules')
             ->where('doctor_id', $doctor->id)
+            ->where('available_day', $dayShortName)
+            ->first();
+
+        if (! $schedule) {
+            return response()->json([
+                'success' => true,
+                'schedules' => [], // No slots available
+            ]);
+        }
+
+        // Get existing booked slots
+        $bookedSlots = Appointment::where('doctor_id', $doctor->id)
+            ->where('appointment_date', $requestedDate->toDateString())
             ->whereIn('status', ['Pending', 'Confirmed'])
-            ->whereBetween('appointment_date', [
-                $today->toDateString(),
-                $today->copy()->addDays($daysToLookAhead)->toDateString()
-            ])
             ->get()
-            ->map(function ($booking) {
-                // Map to a string like '2025-10-06|09:00-09:30' for easy checking
-                $timeRange = Carbon::parse($booking->start_time)->format('H:i') . '-' . Carbon::parse($booking->end_time)->format('H:i');
-                return $booking->appointment_date . '|' . $timeRange;
+            ->map(function ($a) {
+                return \Carbon\Carbon::parse($a->start_time)->format('H:i').'-'.\Carbon\Carbon::parse($a->end_time)->format('H:i');
             })->toArray();
 
-        // 3. Iterate through the next 7 days to generate actual available slots
-        for ($i = 0; $i < $daysToLookAhead; $i++) {
-            $date = $today->copy()->addDays($i);
-            $dayShortName = $date->format('D');
-            $dayFullName = $date->format('l');
-            $fullDateString = $date->toDateString();
+        // Generate 30-min slots
+        $startTime = \Carbon\Carbon::parse($schedule->start_time);
+        $endTime = \Carbon\Carbon::parse($schedule->end_time);
+        $slots = [];
 
-            if (isset($recurringSchedules[$dayShortName])) {
-                $schedule = $recurringSchedules[$dayShortName];
-                $slots = [];
+        while ($startTime->lt($endTime)) {
+            $slotStart = $startTime->format('H:i');
+            $slotEnd = $startTime->copy()->addMinutes(30)->format('H:i');
+            $slotRange = "{$slotStart}-{$slotEnd}";
 
-                $startTime = Carbon::parse($schedule->start_time);
-                $endTime = Carbon::parse($schedule->end_time);
-
-                // Handle today's schedule: skip slots already past
-                if ($i === 0) {
-                    $now = Carbon::now();
-                    if ($now->greaterThanOrEqualTo($endTime)) {
-                         continue;
-                    }
-                    if ($now->greaterThan($startTime)) {
-                        $startTime = $now->ceilMinute(30);
-                    }
-                }
-
-                // Generate 30-minute slots
-                while ($startTime->lessThan($endTime)) {
-                    $slotStart = $startTime->format('H:i');
-                    $slotEnd = $startTime->copy()->addMinutes(30)->format('H:i');
-                    $slotTimeRange = "{$slotStart}-{$slotEnd}";
-
-                    // The key used for checking against bookings
-                    $slotKey = $fullDateString . '|' . $slotTimeRange;
-
-                    // Only add the slot if it is NOT in the bookedSlots array
-                    if (!in_array($slotKey, $bookedSlots)) {
-                        $slots[] = $slotTimeRange;
-                    }
-
-                    $startTime = Carbon::parse($slotEnd);
-                }
-
-                if (!empty($slots)) {
-                    $schedulesData[] = [
-                        'available_day' => $fullDateString,
-                        'day_name' => $dayFullName,
-                        'slots' => $slots,
-                    ];
-                }
+            if (! in_array($slotRange, $bookedSlots)) {
+                $slots[] = $slotRange;
             }
+
+            $startTime->addMinutes(30);
         }
 
         return response()->json([
             'success' => true,
-            'doctor_id' => $doctor->id,
-            'schedules' => $schedulesData,
+            'schedules' => [
+                [
+                    'available_day' => $requestedDate->toDateString(),
+                    'day_name' => $requestedDate->format('l'),
+                    'slots' => $slots,
+                ],
+            ],
         ]);
     }
 
@@ -171,7 +158,7 @@ class PatientAppointmentController extends Controller
 
         if ($existingAppointment) {
             return back()->withErrors(['time_slot' => 'This slot was just booked by another patient. Please choose a different time.'])
-                         ->withInput();
+                ->withInput();
         }
 
         // 4. Database Save
@@ -187,13 +174,13 @@ class PatientAppointmentController extends Controller
             ]);
 
             return redirect()->route('patient.appointments.index')
-                             ->with('success', 'Your appointment has been successfully booked!');
+                ->with('success', 'Your appointment has been successfully booked!');
 
         } catch (\Exception $e) {
-            \Log::error('Appointment booking failed: ' . $e->getMessage());
+            \Log::error('Appointment booking failed: '.$e->getMessage());
 
             return back()->withErrors(['general' => 'We could not book your appointment due to a server error. Please try again.'])
-                         ->withInput();
+                ->withInput();
         }
     }
 }
