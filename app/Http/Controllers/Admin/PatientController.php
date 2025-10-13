@@ -32,12 +32,16 @@ class PatientController extends Controller
      */
     public function store(Request $request)
     {
+        // 1. Update Validation Rules to include new required fields
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'phone' => 'nullable|string|max:20',
-            'date_of_birth' => 'nullable|date',
-            'address' => 'nullable|string|max:500',
+            'date_of_birth' => 'required|date', // Assuming date_of_birth should be required
+            'gender' => 'required|in:Male,Female,Other', // Add gender validation
+            'blood_type' => 'required|string|max:3', // Add blood_type validation
+            'address' => 'required|string|max:500', // Assuming address should be required
+            'emergency_contact' => 'required|string|max:255', // Add emergency_contact validation
         ]);
 
         // Create a user first
@@ -48,13 +52,18 @@ class PatientController extends Controller
             'role' => 'patient',
         ]);
 
-        // Create patient record
+        // 2. Update Patient::create to include new fields
         Patient::create([
             'user_id' => $user->id,
+            'name' => $request->name,
             'phone' => $request->phone,
             'date_of_birth' => $request->date_of_birth,
+            'gender' => $request->gender, // Added
+            'blood_type' => $request->blood_type, // Added
             'address' => $request->address,
+            'emergency_contact' => $request->emergency_contact, // Added
         ]);
+
 
         return redirect()->route('admin.patients.index')->with('success', 'Patient added successfully!');
     }
@@ -72,12 +81,16 @@ class PatientController extends Controller
      */
     public function update(Request $request, Patient $patient)
     {
+        // 3. Update Validation Rules for the update method
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => "required|email|unique:users,email,{$patient->user_id}",
             'phone' => 'nullable|string|max:20',
-            'date_of_birth' => 'nullable|date',
-            'address' => 'nullable|string|max:500',
+            'date_of_birth' => 'required|date',
+            'gender' => 'required|in:Male,Female,Other', // Add gender validation
+            'blood_type' => 'required|string|max:3', // Add blood_type validation
+            'address' => 'required|string|max:500',
+            'emergency_contact' => 'required|string|max:255', // Add emergency_contact validation
         ]);
 
         // Update user info
@@ -86,11 +99,15 @@ class PatientController extends Controller
             'email' => $request->email,
         ]);
 
-        // Update patient info
+        // 4. Update patient info to include new fields
         $patient->update([
+            'name' => $request->name, // Added 'name' back to patient update
             'phone' => $request->phone,
             'date_of_birth' => $request->date_of_birth,
+            'gender' => $request->gender, // Added
+            'blood_type' => $request->blood_type, // Added
             'address' => $request->address,
+            'emergency_contact' => $request->emergency_contact, // Added
         ]);
 
         return redirect()->route('admin.patients.index')->with('success', 'Patient updated successfully!');
@@ -116,7 +133,7 @@ class PatientController extends Controller
         $patients = Patient::with('user')
             ->whereHas('user', function($query) use ($q) {
                 $query->where('name', 'like', "%$q%")
-                      ->orWhere('email', 'like', "%$q%");
+                    ->orWhere('email', 'like', "%$q%");
             })
             ->paginate(10);
 

@@ -45,5 +45,11 @@
     </tbody>
 </table>
 
-{{ $patients->links() }}
+<
+
+<div class="d-flex justify-content-center">
+    <div class="pagination pagination-sm">
+        {{ $patients->links('pagination::bootstrap-5') }}
+    </div>
+</div>
 @endsection
