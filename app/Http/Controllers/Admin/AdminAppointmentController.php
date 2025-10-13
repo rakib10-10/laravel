@@ -3,105 +3,150 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Doctor;      // Mock model
-use App\Models\Patient;     // Mock model
-use App\Models\Appointment; // <-- ADDED: Required for method type-hinting
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Carbon;
+use App\Models\Doctor;
+use App\Models\Patient;
+use App\Models\Appointment;
+use App\Models\DoctorSchedule;
 
 class AdminAppointmentController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
-    {
-        // Example: $appointments = Appointment::with(['patient', 'doctor'])->paginate(15);
-        $appointments = collect([]); // Placeholder
-        return view('admin.appointments.index', compact('appointments'));
-    } 
-    
-    /**
-     * Show the form for creating a new resource.
-     */
+    // Show appointment creation form
     public function create()
     {
-        // Fetch data needed for the creation form (e.g., all doctors and patients)
         $doctors = Doctor::all();
         $patients = Patient::all();
-
         return view('admin.appointments.create', compact('doctors', 'patients'));
     }
-    
-    /**
-     * Store a newly created appointment.
-     */
+
+    // Store new appointment
     public function store(Request $request)
-    {
-        $request->validate([
-            'doctor_id' => 'required|exists:doctors,id',
-            'patient_id' => 'required|exists:patients,id',
-            'available_day' => 'required|string',
-            'start_time' => 'required|date_format:H:i',
-            'end_time' => 'required|date_format:H:i',
-            'notes' => 'nullable|string',
+{
+    try {
+        $validatedData = $request->validate([
+            'patient_id'      => 'required|exists:patients,id',
+            'doctor_id'       => 'required|exists:doctors,id',
+            'appointment_date' => 'required|date',
+            'available_day'   => 'required|string',
+            'time_slot'       => 'required|string',
+            'notes'           => 'nullable|string',
+            'start_time'      => 'required',
+            'end_time'        => 'required',
         ]);
 
-        // Appointment::create([...]); // Persistence logic goes here
+        $appointment = Appointment::create([
+            'patient_id'       => $validatedData['patient_id'],
+            'doctor_id'        => $validatedData['doctor_id'],
+            'available_day'    => $validatedData['available_day'],
+            'appointment_date' => $validatedData['appointment_date'],
+            'time_slot'        => $validatedData['time_slot'],
+            'start_time'       => $validatedData['start_time'],
+            'end_time'         => $validatedData['end_time'],
+            'notes'            => $validatedData['notes'] ?? '',
+            'status'           => 'pending'
+        ]);
 
-        return redirect()->route('admin.appointments.index')
-                         ->with('success', 'Appointment successfully booked!');
+        return redirect()->route('admin.appointments.show', $appointment->id)
+                         ->with('success', 'Appointment booked successfully!');
+
+    } catch (\Exception $e) {
+        return redirect()->back()
+                         ->withInput()
+                         ->with('error', 'Error creating appointment: ' . $e->getMessage());
+    }
+}
+    // Show single appointment confirmation
+    public function show($id)
+    {
+        try {
+            // Load the appointment with relationships
+            $appointment = Appointment::with(['patient', 'doctor'])->findOrFail($id);
+            
+            return view('admin.appointment-confirmation', compact('appointment'));
+            
+        } catch (\Exception $e) {
+            return redirect()->route('admin.appointments.index')
+                             ->with('error', 'Appointment not found: ' . $e->getMessage());
+        }
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Appointment $appointment)
+    public function edit($id)
     {
-        // return view('admin.appointments.show', compact('appointment'));
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Appointment $appointment)
-    {
-        // Fetch $doctors and $patients if needed for the edit form
+        $appointment = Appointment::with(['patient', 'doctor'])->findOrFail($id);
+        $doctors = Doctor::all();
+        $patients = Patient::all();
+        
         return view('admin.appointments.edit', compact('appointment', 'doctors', 'patients'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Appointment $appointment)
+public function update(Request $request, $id)
     {
-        // Update validation and persistence logic goes here
-        return redirect()->route('admin.appointments.index')->with('success', 'Appointment updated.');
+        $validatedData = $request->validate([
+            'patient_id'      => 'required|exists:patients,id',
+            'doctor_id'       => 'required|exists:doctors,id',
+            'appointment_date' => 'required|date',
+            'available_day'   => 'required|string',
+            'time_slot'       => 'required|string',
+            'start_time'      => 'required',
+            'end_time'        => 'required',
+            'status'          => 'required|in:pending,confirmed,completed,cancelled',
+            'notes'           => 'nullable|string',
+        ]);
+
+        $appointment = Appointment::findOrFail($id);
+        $appointment->update($validatedData);
+
+        return redirect()->route('admin.appointments.show', $appointment->id)
+                         ->with('success', 'Appointment updated successfully!');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Appointment $appointment)
+
+    public function updateStatus(Request $request, $id)
     {
-        // $appointment->delete();
-        // return redirect()->route('admin.appointments.index')->with('success', 'Appointment deleted.');
+        $request->validate([
+            'status' => 'required|in:pending,confirmed,completed,cancelled'
+        ]);
+
+        $appointment = Appointment::findOrFail($id);
+        $appointment->update(['status' => $request->status]);
+
+        if ($request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Status updated successfully!',
+                'status' => $appointment->status
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Appointment status updated!');
     }
 
-    /**
-     * Handles the AJAX request for a doctor's schedule.
-     */
-    public function getSchedules(Doctor $doctor)
+    // List all appointments
+    public function index()
     {
-        // Mock schedule data for demonstration purposes
-        $schedules = [
-            ['available_day' => 'Monday', 'start_time' => '09:00', 'end_time' => '12:00'],
-            ['available_day' => 'Monday', 'start_time' => '14:00', 'end_time' => '17:00'],
-            ['available_day' => 'Wednesday', 'start_time' => '10:00', 'end_time' => '13:00'],
-            ['available_day' => 'Friday', 'start_time' => '08:00', 'end_time' => '11:00'],
-        ];
+        $appointments = Appointment::with(['doctor', 'patient'])
+                                  ->orderBy('appointment_date', 'desc')
+                                  ->orderBy('start_time', 'desc')
+                                  ->paginate(10);
+        
+        return view('admin.appointments.index', compact('appointments'));
+    }
 
-        return response()->json(['schedules' => $schedules]);
+    // Fetch doctor schedules (AJAX)
+    public function getSchedules($doctorId)
+    {
+        try {
+            $schedules = DoctorSchedule::where('doctor_id', $doctorId)
+                ->select('available_day', 'start_time', 'end_time')
+                ->get();
+
+            return response()->json([
+                'schedules' => $schedules
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 }

@@ -34,7 +34,6 @@ class DoctorController extends Controller
      */
     public function store(Request $request)
     {
-
         // 1. Validate the form data, including the image.
         $validatedData = $request->validate([
             'name' => 'required|string|max:255',
@@ -47,18 +46,25 @@ class DoctorController extends Controller
             'specialization' => 'required|string|max:255',
             'designation' => 'nullable|string|max:255',
             'department' => 'nullable|string|max:255',
-            'license_number' => 'required|string|max:255',
+            'license_number' => 'required|string|max:255|unique:doctors,license_number',
             'date_of_joining' => 'nullable|date',
             'work_experience' => 'nullable|integer',
-            'profile_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // Added image validation
+            'profile_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048', // Added webp support
         ]);
         
         // 2. Handle image upload and save the filename.
         $imageName = null;
         if ($request->hasFile('profile_image')) {
             $image = $request->file('profile_image');
-            $imageName = time() . '.' . Str::uuid()->toString() . '.' . $image->getClientOriginalExtension();
-            $image->move(public_path('images'), $imageName);
+            $imageName = 'doctor_' . time() . '_' . Str::uuid()->toString() . '.' . $image->getClientOriginalExtension();
+            
+            // Create images directory if it doesn't exist
+            $imagePath = public_path('images');
+            if (!File::exists($imagePath)) {
+                File::makeDirectory($imagePath, 0755, true);
+            }
+            
+            $image->move($imagePath, $imageName);
         }
 
         // 3. Create the User record first to get a user ID.
@@ -70,7 +76,7 @@ class DoctorController extends Controller
         ]);
 
         // 4. Create the Doctor record using the new user's ID.
-        Doctor::create([
+        $doctor = Doctor::create([
             'user_id' => $user->id,
             'name' => $validatedData['name'],
             'email' => $validatedData['email'],
@@ -85,11 +91,10 @@ class DoctorController extends Controller
             'license_number' => $validatedData['license_number'],
             'date_of_joining' => $validatedData['date_of_joining'],
             'work_experience' => $validatedData['work_experience'],
-            'profile_image' => $imageName, // Save the image name
+            'profile_image' => $imageName, // Save the image filename
         ]);
 
-        $doctor = Doctor::where('user_id', $user->id)->first();
-        
+        // 5. Handle doctor schedules
         if ($request->has('schedules') && is_array($request->schedules)) {
             $schedules = $request->schedules;
             
@@ -121,7 +126,6 @@ class DoctorController extends Controller
             // Use createMany to insert all schedules at once
             $doctor->schedules()->createMany($validatedSchedules);
         }
-
 
         return redirect()->route('admin.doctors.index')->with('success', 'Doctor created successfully!');
     }
@@ -159,10 +163,10 @@ class DoctorController extends Controller
             'specialization' => 'required|string|max:255',
             'designation' => 'nullable|string|max:255',
             'department' => 'nullable|string|max:255',
-            'license_number' => 'required|string|max:255',
+            'license_number' => ['required', 'string', 'max:255', Rule::unique('doctors')->ignore($doctor->id)],
             'date_of_joining' => 'nullable|date',
             'work_experience' => 'nullable|integer',
-            'profile_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // Added image validation
+            'profile_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048', // Added webp support
         ]);
 
         // 2. Handle image update and deletion of old image.
@@ -173,9 +177,12 @@ class DoctorController extends Controller
             }
 
             $image = $request->file('profile_image');
-            $imageName = time() . '.' . Str::uuid()->toString() . '.' . $image->getClientOriginalExtension();
+            $imageName = 'doctor_' . time() . '_' . Str::uuid()->toString() . '.' . $image->getClientOriginalExtension();
             $image->move(public_path('images'), $imageName);
             $validatedData['profile_image'] = $imageName;
+        } else {
+            // Keep the existing image if no new image is uploaded
+            $validatedData['profile_image'] = $doctor->profile_image;
         }
 
         // 3. Update the user record
@@ -195,14 +202,14 @@ class DoctorController extends Controller
      */
     public function destroy(Doctor $doctor)
     {
+        // Delete the profile image from storage
+        if ($doctor->profile_image && File::exists(public_path('images/' . $doctor->profile_image))) {
+            File::delete(public_path('images/' . $doctor->profile_image));
+        }
+
         // Delete the associated user first to avoid integrity issues
         if ($doctor->user) {
             $doctor->user->delete();
-        }
-
-        // Delete the profile image from storage
-        if ($doctor->profile_image) {
-            File::delete(public_path('images/' . $doctor->profile_image));
         }
 
         $doctor->delete();
@@ -221,5 +228,16 @@ class DoctorController extends Controller
             'doctor' => $doctor,
             'schedules' => $doctor->schedules
         ]);
+    }
+
+    /**
+     * Helper method to get the full image URL
+     */
+    public function getImageUrl($filename)
+    {
+        if ($filename && File::exists(public_path('images/' . $filename))) {
+            return asset('images/' . $filename);
+        }
+        return asset('images/default-avatar.png'); // Fallback image
     }
 }

@@ -154,7 +154,7 @@
                     <p><strong>Manufacturer:</strong> {{ $medicine->manufacturer }}</p>
                     <p><strong>Description:</strong> {{ $medicine->description }}</p>
                 </div>
-                <button class="details-btn">View Details</button>
+                
             </div>
         @endforeach
     </div>

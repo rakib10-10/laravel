@@ -20,11 +20,12 @@ class DatabaseSeeder extends Seeder
     {
        
 
-    Patient::factory(20)->create();
-    User::factory(40)->create();
+    Patient::factory(30)->create();
+    User::factory(20)->create();
     Doctor::factory(15)->create();
     Report::factory(20)->create();
 
+    $this->call(MedicineSeeder::class);
 
        
     }

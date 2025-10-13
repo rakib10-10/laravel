@@ -20,6 +20,7 @@
             <th>Email</th>
             <th>Phone</th>
             <th>DOB</th>
+            <th>Registered Date</th>
             <th>Actions</th>
         </tr>
     </thead>
@@ -30,6 +31,7 @@
             <td>{{ $patient->user->email }}</td>
             <td>{{ $patient->phone }}</td>
             <td>{{ $patient->date_of_birth }}</td>
+            <td>{{ $patient->created_at->format('M d, Y') }}</td>
             <td>
                 <a href="{{ route('admin.patients.edit', $patient->id) }}" class="btn btn-primary btn-sm">Edit</a>
                 <form action="{{ route('admin.patients.destroy', $patient->id) }}" method="POST" style="display:inline-block;">
@@ -40,12 +42,10 @@
             </td>
         </tr>
         @empty
-        <tr><td colspan="5">No patients found.</td></tr>
+        <tr><td colspan="6">No patients found.</td></tr>
         @endforelse
     </tbody>
 </table>
-
-<
 
 <div class="d-flex justify-content-center">
     <div class="pagination pagination-sm">

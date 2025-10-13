@@ -29,7 +29,8 @@
             
             <div class="form-group mb-3">
                 <label for="profile_image">Profile Image</label>
-                <input type="file" class="form-control" id="profile_image" name="profile_image">
+                <input type="file" class="form-control" id="profile_image" name="profile_image" accept="image/*">
+                <small class="form-text text-muted">Accepted formats: JPG, JPEG, PNG, GIF. Max size: 2MB</small>
             </div>
             
             <div class="form-group mb-3">
