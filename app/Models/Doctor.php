@@ -9,11 +9,6 @@ class Doctor extends Model
 {
     use HasFactory;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
     protected $fillable = [
         'user_id',
         'name',
@@ -32,21 +27,19 @@ class Doctor extends Model
         'profile_image',
     ];
 
-    /**
-     * Get the user that owns the doctor.
-     */
+    // Relationships
     public function user()
     {
         return $this->belongsTo(User::class);
     }
-    public function edit($id)
-{
-    $doctor = Doctor::findOrFail($id); // This will find the doctor or fail with a 404.
-    return view('admin.doctors.edit', compact('doctor'));
-}
 
-// app/Models/Doctor.php
-public function schedules() {
-    return $this->hasMany(Schedule::class);
-}
+    public function schedules()
+    {
+        return $this->hasMany(Schedule::class);
+    }
+
+    public function appointments()
+    {
+        return $this->hasMany(Appointment::class);
+    }
 }

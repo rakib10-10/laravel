@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
-    <!-- Vite (for Laravel assets like app.js, app.scss) -->
+    <!-- Vite -->
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])
 
     <style>
@@ -26,9 +26,10 @@
             --text-dark: #333;
             --text-light: #666;
             --border-color: #e9ecef;
-            --shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-            --shadow-lg: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+            --shadow-sm: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
+            --shadow-lg: 0 0.5rem 1rem rgba(0,0,0,0.1);
         }
+
         body {
             font-family: 'Segoe UI', Arial, sans-serif;
             background-color: var(--background-light);
@@ -37,10 +38,10 @@
             padding: 0;
             overflow-x: hidden;
         }
-        /* Sidebar */
+
         #sidebarMenu {
             position: fixed;
-            top: 56px; /* navbar height */
+            top: 56px;
             bottom: 0;
             left: 0;
             width: 250px;
@@ -50,14 +51,21 @@
             border-right: 1px solid var(--border-color);
             box-shadow: var(--shadow-lg);
         }
+
         main {
             margin-left: 250px;
-            margin-top: 56px; /* navbar height */
+            margin-top: 56px;
             padding: 40px;
         }
-        .sidebar-brand { text-align: center; margin-bottom: 2rem; }
+
+        .sidebar-brand {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
         .sidebar-brand img { width: 70px; display: block; margin: 0 auto; }
         .sidebar-brand span { display: block; font-weight: 700; margin-top: 0.75rem; font-size: 1.5rem; }
+
         #sidebarMenu .nav-link {
             color: var(--text-light);
             padding: 1rem 1.5rem;
@@ -68,16 +76,20 @@
             align-items: center;
             font-weight: 500;
         }
+
         #sidebarMenu .nav-link:hover {
             color: var(--primary-color);
             background-color: var(--background-light);
             transform: translateX(5px);
         }
+
         #sidebarMenu .nav-link.active {
             color: #fff !important;
             background-color: var(--primary-color) !important;
         }
+
         #sidebarMenu .nav-link i { margin-right: 15px; }
+
         .content-container {
             padding: 20px;
             background: var(--card-bg);
@@ -85,10 +97,10 @@
             box-shadow: var(--shadow-sm);
             min-height: 80vh;
         }
+
         h2.page-title { color: var(--primary-color); margin-bottom: 20px; font-weight: 600; }
     </style>
 </head>
-
 <body>
     <!-- TOP NAVBAR -->
     <nav class="navbar navbar-expand-md navbar-light bg-white shadow-sm fixed-top">
@@ -107,14 +119,10 @@
                 <ul class="navbar-nav ms-auto">
                     @guest
                         @if (Route::has('login'))
-                            <li class="nav-item">
-                                <a class="nav-link" href="{{ route('login') }}">{{ __('Login') }}</a>
-                            </li>
+                            <li class="nav-item"><a class="nav-link" href="{{ route('login') }}">{{ __('Login') }}</a></li>
                         @endif
                         @if (Route::has('register'))
-                            <li class="nav-item">
-                                <a class="nav-link" href="{{ route('register') }}">{{ __('Register') }}</a>
-                            </li>
+                            <li class="nav-item"><a class="nav-link" href="{{ route('register') }}">{{ __('Register') }}</a></li>
                         @endif
                     @else
                         <li class="nav-item dropdown">
@@ -124,13 +132,10 @@
                             </a>
                             <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
                                 <a class="dropdown-item" href="{{ route('logout') }}"
-                                   onclick="event.preventDefault();
-                                            document.getElementById('logout-form').submit();">
-                                    {{ __('Logout') }}
+                                   onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                                   {{ __('Logout') }}
                                 </a>
-                                <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
-                                    @csrf
-                                </form>
+                                <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">@csrf</form>
                             </div>
                         </li>
                     @endguest
@@ -154,43 +159,38 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {{ Request::routeIs('admin.patient') ? 'active' : '' }}"
-                       href="{{ route('admin.patient') }}">
+                    <a class="nav-link {{ Request::routeIs('admin.patients.*') ? 'active' : '' }}"
+                       href="{{ route('admin.patients.index') }}">
                         <i class="fa-solid fa-hospital-user"></i> Patients
                     </a>
                 </li>
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
-                       data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <a class="nav-link dropdown-toggle {{ Request::routeIs('admin.doctors.*') ? 'active' : '' }}" href="#" data-toggle="dropdown">
                         <i class="fa-solid fa-user-doctor"></i> Doctors
                     </a>
-                    <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                    <div class="dropdown-menu">
                         <a class="dropdown-item {{ Request::routeIs('admin.doctors.index') ? 'active' : '' }}"
-                           href="{{ route('admin.doctors.index') }}">
-                            <i class="fa-solid fa-user-doctor"></i> All Doctors
-                        </a>
+                           href="{{ route('admin.doctors.index') }}">All Doctors</a>
                         <a class="dropdown-item {{ Request::routeIs('admin.doctors.create') ? 'active' : '' }}"
-                           href="{{ route('admin.doctors.create') }}">
-                            <i class="fa-solid fa-user-plus"></i> Add New Doctor
-                        </a>
+                           href="{{ route('admin.doctors.create') }}">Add New Doctor</a>
                     </div>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {{ Request::routeIs('admin.medicines.index') ? 'active' : '' }}"
+                    <a class="nav-link {{ Request::routeIs('admin.medicines.*') ? 'active' : '' }}"
                        href="{{ route('admin.medicines.index') }}">
                         <i class="fa-solid fa-pills"></i> Medicines
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {{ Request::routeIs('admin.reports.index') ? 'active' : '' }}"
+                    <a class="nav-link {{ Request::routeIs('admin.reports.*') ? 'active' : '' }}"
                        href="{{ route('admin.reports.index') }}">
                         <i class="fa-solid fa-chart-line"></i> Reports
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {{ Request::routeIs('admin.appointment') ? 'active' : '' }}"
-                       href="{{ route('admin.appointment') }}">
-                        <i class="fa-solid fa-layer-group"></i> Appointment
+                    <a class="nav-link {{ Request::routeIs('admin.appointments.*') ? 'active' : '' }}"
+                       href="{{ route('admin.appointments.index') }}">
+                        <i class="fa-solid fa-layer-group"></i> Appointments
                     </a>
                 </li>
             </ul>
